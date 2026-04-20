@@ -16,6 +16,8 @@ set(PROJECT_SOURCES
     widget.cpp
     widget.h
     widget.ui
+    dbclient.cpp
+    dbclient.h
 )
 
 add_executable(turtlebot_ui ${PROJECT_SOURCES})
