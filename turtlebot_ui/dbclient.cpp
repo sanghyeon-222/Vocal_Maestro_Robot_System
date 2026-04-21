@@ -114,3 +114,63 @@ void DbClient::insertAlert(
     else
         qDebug() << "INSERT 실패:" << query.lastError().text();
 }
+
+// 로봇 상태 조회(robot_status_log에서 각 로봇의 최신 상태 가져오기)
+QList<QMap<QString, QString>> DbClient::selectRobotStatus()
+{
+    QList<QMap<QString, QString>> result;
+    QSqlQuery query;
+
+    query.exec(
+        "SELECT r.robot_name, r.robot_type, "
+        "s.status, s.pos_x, s.pos_y, "
+        "s.orientation_z, s.orientation_w, s.battery_pct "
+        "FROM robot r "
+        "LEFT JOIN robot_status_log s ON r.robot_id = s.robot_id "
+        "WHERE s.log_id IN ("
+        "  SELECT MAX(log_id) FROM robot_status_log GROUP BY robot_id"
+        ")"
+    );
+
+    while (query.next()) {
+        QMap<QString, QString> row;
+        row["robot_name"]    = query.value("robot_name").toString();
+        row["robot_type"]    = query.value("robot_type").toString();
+        row["status"]        = query.value("status").toString();
+        row["pos_x"]         = query.value("pos_x").toString();
+        row["pos_y"]         = query.value("pos_y").toString();
+        row["battery_pct"]   = query.value("battery_pct").toString();
+        result.append(row);
+    }
+
+    return result;
+}
+
+// 미해결 경고 조회(alert_log에서 resolved=false인 경고 가져오기)
+QList<QMap<QString, QString>> DbClient::selectAlerts()
+{
+    QList<QMap<QString, QString>> result;
+    QSqlQuery query;
+
+    query.exec(
+        "SELECT a.alert_id, r.robot_name, "
+        "a.severity, a.alert_type, a.message, a.triggered_at "
+        "FROM alert_log a "
+        "LEFT JOIN robot r ON a.robot_id = r.robot_id "
+        "WHERE a.resolved = false "
+        "ORDER BY a.triggered_at DESC"
+    );
+
+    while (query.next()) {
+        QMap<QString, QString> row;
+        row["alert_id"]    = query.value("alert_id").toString();
+        row["robot_name"]  = query.value("robot_name").toString();
+        row["severity"]    = query.value("severity").toString();
+        row["alert_type"]  = query.value("alert_type").toString();
+        row["message"]     = query.value("message").toString();
+        row["triggered_at"] = query.value("triggered_at").toString();
+        result.append(row);
+    }
+
+    return result;
+}

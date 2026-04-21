@@ -32,6 +32,12 @@ public:
     void insertAlert(int robot_id, QString severity,
                      QString alert_type, QString message);
 
+    // 로봇 상태 조회 (robot_status_log SELECT)
+    QList<QMap<QString, QString>> selectRobotStatus();
+
+    // 미해결 경고 조회 (alert_log SELECT)
+    QList<QMap<QString, QString>> selectAlerts();
+
 private:
     QSqlDatabase db_;
 };
