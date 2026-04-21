@@ -14,12 +14,14 @@ find_package(rviz_default_plugins REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav_msgs REQUIRED)
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets Core)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Core Sql)
 
 set(PROJECT_SOURCES
     main.cpp
     mainwindow.cpp
     mainwindow.h
+    dbclient.cpp
+    dbclient.h
 )
 
 add_executable(turtlebot_map_viewer ${PROJECT_SOURCES})
@@ -35,6 +37,7 @@ ament_target_dependencies(turtlebot_map_viewer
 target_link_libraries(turtlebot_map_viewer
   Qt5::Widgets
   Qt5::Core
+  Qt5::Sql
 )
 
 install(TARGETS turtlebot_map_viewer

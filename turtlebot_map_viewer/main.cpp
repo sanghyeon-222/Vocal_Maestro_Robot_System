@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QScreen>
 #include <rclcpp/rclcpp.hpp>
 #include "mainwindow.h"
 
@@ -10,7 +11,10 @@ int main(int argc, char* argv[])
   auto node = rclcpp::Node::make_shared("turtlebot_map_viewer_node");
 
   MainWindow window(node);
-  window.show();
+  window.setFixedSize(800, 480);
+  window.setWindowFlag(Qt::FramelessWindowHint, true);
+  window.setWindowFlag(Qt::WindowStaysOnTopHint, true);
+  window.showFullScreen();
 
   int result = app.exec();
   rclcpp::shutdown();
