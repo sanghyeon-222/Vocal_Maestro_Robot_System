@@ -22,10 +22,11 @@ WHISPER_MODEL_SIZE = "base"
 RASA_API_URL = "http://localhost:5005/model/parse"
 RASA_WEBHOOK_URL = "http://localhost:5005/webhooks/rest/webhook"
 
+#모델이 동작 될 경계점
 WAKE_THRESHOLD = 0.5    
 RASA_THRESHOLD = 0.6    
 
-# [업그레이드] 위스퍼 인식 성능 향상을 위한 프롬프트 (로봇 이름과 주요 명령 포함)
+# 위스퍼 성능 향상을 위한 프롬프트
 WHISPER_PROMPT = "철수, 영희, 길동, 이리로 와, 멈춰, 집으로 가, 구역, 이동해, 로봇 제어 명령."
 
 # 로봇 이름이 꼭 필요한 인텐트 목록
@@ -64,7 +65,7 @@ def get_rasa_all_info(text):
     except:
         return "error", 0, "NULL", "서버 연결 오류"
 
-# --- [업그레이드] 모델 초기화 ---
+# --- 모델 초기화 ---
 print("모델 로딩 중...", flush=True)
 oww_model = Model(wakeword_models=[MODEL_PATH], inference_framework="tflite")
 
@@ -117,9 +118,9 @@ try:
             audio_data = np.frombuffer(b''.join(frames), dtype=np.int16).astype(np.float32) / 32768.0
             
             try:
-                signal.alarm(8) # 연산 시간 소폭 연장
+                signal.alarm(8) # 연산 시간을 8초로 제한
                 
-                # [업그레이드] Whisper 추론 파라미터 최적화
+                #Whisper 추론 파라미터 최적화
                 segments, info = stt_model.transcribe(
                     audio_data, 
                     language="ko", 
@@ -134,6 +135,7 @@ try:
                 text = "".join([s.text for s in segments]).strip()
                 signal.alarm(0)
 
+                # 말소리를 재외하고, 불필요한 데이터를 제거
                 clean_text = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text).strip()
                 
                 if len(clean_text) < 2:
@@ -142,7 +144,10 @@ try:
                 else:
                     intent, confidence, robot_name, response_text = get_rasa_all_info(text)
                     
+                    #정확도가 떨어지거나 의도가 불분명하면 실패
                     if intent != "nlu_fallback" and confidence >= RASA_THRESHOLD:
+                        #지정한 format으로 필요한 데이터를 print하여 qt에서 사용할 수 있도록 함
+                        #semi json 방식
                         print(f"intent: {intent}, confidence: {confidence:.2f}, robot_name: {robot_name}, text: {text}, response: {response_text}", flush=True)
                         
                         # 의도 정규화 (go_A_auto -> go_A)
